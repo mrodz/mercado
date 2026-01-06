@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Your Charles Schwab Account</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 480px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00a0dc 0%, #0077c8 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #00a0dc;
+            font-size: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 15px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .info-section {
+            margin-bottom: 30px;
+        }
+
+        .info-section h2 {
+            font-size: 18px;
+            color: #1a202c;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 12px 0;
+            padding-left: 32px;
+            position: relative;
+            color: #4a5568;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #48bb78;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .security-badge {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .security-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .security-text {
+            flex: 1;
+        }
+
+        .security-text strong {
+            display: block;
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .security-text span {
+            color: #718096;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00a0dc 0%, #0077c8 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 119, 200, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .footer-note {
+            text-align: center;
+            color: #a0aec0;
+            font-size: 13px;
+            margin-top: 24px;
+            line-height: 1.6;
+        }
+
+        .footer-note a {
+            color: #0077c8;
+            text-decoration: none;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .info-section h2 {
+                font-size: 16px;
+            }
+
+            .feature-list li {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">CS</div>
+            <h1>Connect Your Schwab Account</h1>
+            <p>Securely link your Charles Schwab account to continue</p>
+        </div>
+
+        <div class="content">
+            <div class="security-badge">
+                <div class="security-icon">🔒</div>
+                <div class="security-text">
+                    <strong>Bank-level security</strong>
+                    <span>Your credentials are encrypted and never stored</span>
+                </div>
+            </div>
+
+            <a href="/u/login/schwab" class="btn-primary">
+                Connect to Charles Schwab
+            </a>
+
+            <p class="footer-note">
+                You can disconnect at any time by following <a href="https://www.schwab.com/content/how-to-manage-third-party-access-to-my-account-information">these steps</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

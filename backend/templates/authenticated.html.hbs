@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Debug - Session Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #c9d1d9;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00a0dc 0%, #0077c8 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: white;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: white;
+            font-size: 14px;
+        }
+
+        .timestamp {
+            display: inline-block;
+            background: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #225500;
+            margin-top: 8px;
+        }
+
+        .debug-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .debug-box {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .debug-header {
+            background: #a8b0ba;
+            padding: 16px 20px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .debug-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .debug-title h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e6edf3;
+        }
+
+        .debug-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .icon-session {
+            background: #1f6feb;
+            color: white;
+        }
+
+        .icon-code {
+            background: #238636;
+            color: white;
+        }
+
+        .icon-state {
+            background: #9e6a03;
+            color: white;
+        }
+
+        .badge {
+            background: #df552f;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .debug-content {
+            padding: 20px;
+        }
+
+        .value-display {
+            font-family: 'Courier New', Courier, monospace;
+            background: white;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            word-break: break-all;
+            font-size: 14px;
+            line-height: 1.6;
+            color: black;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+
+        .value-display.empty {
+            color: #6e7681;
+            font-style: italic;
+        }
+
+        .value-display:hover {
+            border-color: #58a6ff;
+        }
+
+        .char-count {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #30363d;
+            font-size: 12px;
+            color: #285385;
+            display: flex;
+            gap: 20px;
+        }
+
+        .char-count span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .char-count span:before {
+            content: "•";
+            color: #58a6ff;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .info-item {
+            background: white;
+            color: black;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: #285385;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 13px;
+            color: #285385;
+        }
+
+        .footer {
+            padding-top: 24px;
+            text-align: center;
+            color: #6e7681;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .debug-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .value-display {
+                font-size: 12px;
+                padding: 12px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .copied {
+            background: #55cc22;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1></span>OAuth Debug Console</h1>
+            <p>Developer debugging interface for OAuth authentication flow</p>
+            <span class="timestamp">Session captured at {{timestamp}}</span>
+        </div>
+
+        <div class="debug-grid">
+            <div class="debug-box">
+                <div class="debug-header">
+                    <div class="debug-title">
+                        <div class="debug-icon icon-session">🔑</div>
+                        <h2>Access Token</h2>
+                    </div>
+                    <span class="badge">Required</span>
+                </div>
+                <div class="debug-content">
+                    <div class="value-display"><span id="access_token-h"></span></div>
+                    <div class="char-count">
+                        <span>Length: <span id="access_token_length-h"></span></span>
+                        <span>Type: String</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Expires In</div>
+                            <div class="info-value"><span id="expires_in-h"></span></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Single Use</div>
+                            <div class="info-value">False</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="debug-box">
+                <div class="debug-header">
+                    <div class="debug-title">
+                        <div class="debug-icon icon-code">📝</div>
+                        <h2>Refresh Token</h2>
+                    </div>
+                    <span class="badge">Required</span>
+                </div>
+                <div class="debug-content">
+                    <div class="value-display"><span id="refresh_token-h"></span></div>
+                    <div class="char-count">
+                        <span>Length: <span id="refresh_token_length-h"></span></span>
+                        <span>Type: String</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Single Use</div>
+                            <div class="info-value">False</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>⚠️ This page contains sensitive OAuth credentials. Do not share or expose publicly.</p>
+            <p style="margin-top: 8px;">Debug Mode • Development Environment Only</p>
+        </div>
+    </div>
+
+    <script>
+        function decodeTokensFromHash(hash) {
+            // default to current page
+            if (hash == null) hash = window.location.hash;
+
+            let MAX_BYTES = 16384;
+
+            if (typeof hash !== "string" || hash.length === 0 || hash.charAt(0) !== "#") {
+                throw new Error("Missing URL fragment (#...).");
+            }
+
+            let raw = hash.slice(1);
+            if (!raw) {
+                throw new Error("Empty URL fragment.");
+            }
+
+            if (!/^[A-Za-z0-9+/]+={0,2}$/.test(raw)) {
+                throw new Error("Fragment is not valid standard base64.");
+            }
+
+            let bin;
+            try {
+                bin = atob(raw);
+            } catch (e) {
+                throw new Error("Base64 decoding failed.");
+            }
+
+            if (bin.length > MAX_BYTES) {
+                throw new Error("Decoded payload too large.");
+            }
+
+            let bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) {
+                bytes[i] = bin.charCodeAt(i);
+            }
+
+            let jsonText;
+            try {
+                jsonText = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+            } catch (e) {
+                throw new Error("Decoded bytes are not valid UTF-8.");
+            }
+
+            let obj;
+            try {
+                obj = JSON.parse(jsonText);
+            } catch (e) {
+                throw new Error("Decoded payload is not valid JSON.");
+            }
+
+            if (!obj || typeof obj !== "object") throw new Error("Decoded JSON is not an object.");
+            if (typeof obj.access_token !== "string") throw new Error("Missing/invalid access_token.");
+            if (typeof obj.refresh_token !== "string") throw new Error("Missing/invalid refresh_token.");
+            if (typeof obj.expires_in !== "number" || !isFinite(obj.expires_in)) throw new Error("Missing/invalid expires_in.");
+
+            return {
+                access_token: obj.access_token,
+                refresh_token: obj.refresh_token,
+                expires_in: obj.expires_in
+            };
+        }
+
+
+        function toast(msg, ms) {
+            if (ms == null) ms = 1500;
+
+            var t = document.createElement("div");
+            t.textContent = msg;
+
+            t.style.position = "fixed";
+            t.style.bottom = "20px";
+            t.style.left = "50%";
+            t.style.transform = "translateX(-50%)";
+            t.style.padding = "8px 12px";
+            t.style.borderRadius = "6px";
+            t.style.fontSize = "14px";
+            t.style.zIndex = "9999";
+            t.style.opacity = "0";
+            t.style.transition = "opacity 150ms ease";
+            t.classList.add('copied')
+
+            document.body.appendChild(t);
+
+            requestAnimationFrame(function () {
+                t.style.opacity = "1";
+            });
+
+            setTimeout(function () {
+                t.style.opacity = "0";
+                setTimeout(function () {
+                    document.body.removeChild(t);
+                }, 150);
+            }, ms);
+        }
+
+
+        (function () {
+            let tokens;
+
+            try {
+                tokens = decodeTokensFromHash();
+            } catch (e) {
+                console.error(e.message);
+                return;
+            }
+
+
+            function setText(id, value) {
+                let el = document.getElementById(id);
+                if (!el) return;
+                el.textContent = value;
+            }
+
+
+            setText("access_token-h", tokens.access_token);
+            setText("access_token_length-h", String(tokens.access_token.length));
+            setText("refresh_token-h", tokens.refresh_token);
+            setText("refresh_token_length-h", String(tokens.refresh_token.length));
+            setText("expires_in-h", String(tokens.expires_in));
+
+
+            function copyToClipboard(text) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).catch(function (err) {
+                        console.error("Clipboard write failed:", err);
+                    });
+                } else {
+                    // Fallback for older browsers / non-HTTPS
+                    var ta = document.createElement("textarea");
+                    ta.value = text;
+                    ta.style.position = "fixed";
+                    ta.style.left = "-9999px";
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    try {
+                        document.execCommand("copy");
+                    } catch (e) {
+                        console.error("Fallback copy failed:", e);
+                    }
+                    document.body.removeChild(ta);
+                }
+            }
+
+
+            function bindParentClick(childId, value) {
+                var child = document.getElementById(childId);
+                if (!child || !child.parentElement) return;
+
+                var parent = child.parentElement;
+
+                parent.style.cursor = "pointer";
+
+                parent.addEventListener("click", function () {
+                    copyToClipboard(value);
+                    toast("Copied to clipboard 📝", 800)
+                    parent.classList.add("copied");
+                    setTimeout(function () {
+                        parent.classList.remove("copied");
+                    }, 800);
+                });
+            }
+
+
+            bindParentClick("access_token-h", tokens.access_token);
+            bindParentClick("refresh_token-h", tokens.refresh_token);
+        })();
+    </script>
+</body>
+</html>
