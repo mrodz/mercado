@@ -1,18 +1,30 @@
-use rocket::serde::json::Json;
+use rocket::{http::CookieJar, serde::json::Json};
+use rocket_oauth2::OAuth2;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::oauth::{Credentials, CredentialsPackaged};
+use crate::oauth::{AUTH_COOKIE_NAME, Credentials, Schwab};
 
 const TRADER_API: &str = "https://api.schwabapi.com/trader/v1";
 
-#[post("/user", data = "<credentials>")]
-pub async fn user(credentials: Json<CredentialsPackaged>) -> Json<SchwabUsers> {
-    let credentials = credentials.into_inner();
-    let credentials = Credentials::try_from(&credentials).expect("bad credentials");
+#[get("/user")]
+pub async fn user(oauth2: OAuth2<Schwab>, cookies: &CookieJar<'_>) -> Json<SchwabUsers> {
+    let auth = cookies.get_private(AUTH_COOKIE_NAME).expect("auth cookie not found");
+    let mut credentials = Credentials::decode(auth.value()).unwrap();
 
-    Json::from(SchwabUsers(get_user(credentials).await.expect("could not get user")))
+    Json::from(SchwabUsers(get_user(&mut credentials, &oauth2).await.expect("could not get user")))
 }
+
+#[post("/refresh_token")]
+pub async fn refresh_token_debug(oauth2: OAuth2<Schwab>, cookies: &CookieJar<'_>) -> Value {
+    let auth = cookies.get_private(AUTH_COOKIE_NAME).expect("auth cookie not found");
+    let mut credentials = Credentials::decode(auth.value()).unwrap();
+    credentials.refresh_access_token(&oauth2).await.unwrap();
+    serde_json::json!({
+        "success": true,
+    })
+}
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SchwabUsers(Vec<SchwabAccount>);
@@ -41,11 +53,11 @@ pub struct SchwabAccount {
     has_forex_account: bool,
 }
 
-pub async fn get_user(credentials: Credentials) -> Result<Vec<SchwabAccount>, reqwest::Error> {
+pub async fn get_user(credentials: &mut Credentials, oauth2: &OAuth2<Schwab>) -> Result<Vec<SchwabAccount>, reqwest::Error> {
     let client = reqwest::Client::new();
 
     let req = client.get(format!("{TRADER_API}/userPreference"))
-        .header("Authorization", format!("Bearer {}", credentials.access_token()))
+        .header("Authorization", format!("Bearer {}", credentials.ensure_access_token(oauth2).await.unwrap()))
         .header("accept", "application/json");
 
     let response = req

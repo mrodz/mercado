@@ -25,7 +25,7 @@ async fn build_dir(file: PathBuf) -> io::Result<NamedFile> {
 fn rocket() -> _ {
     rocket::build()
         .mount("/u", routes![oauth::schwab_login, oauth::schwab_callback, schwab::user])
-        .mount("/debug", routes![pages::login_page, pages::index_page, pages::authenticated_page])
+        .mount("/debug", routes![pages::login_page, pages::index_page, pages::authenticated_page, schwab::refresh_token_debug])
         .mount("/", routes![index, build_dir])
         .attach(oauth::fairing())
         .attach(Template::fairing())
