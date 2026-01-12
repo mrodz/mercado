@@ -155,7 +155,6 @@ pub async fn quotes_stream<'a, 'b: 'a>(
                     incoming = stream.next() => {
                         let Some(incoming) = incoming else {
                             // client disconnected
-                            qm.clear_state().await;
                             break;
                         };
 
@@ -181,12 +180,10 @@ pub async fn quotes_stream<'a, 'b: 'a>(
                                 }
                             }
                             Ok(Message::Close(_)) => {
-                                qm.clear_state().await;
                                 break;
                             },
                             Ok(_) => {}
                             Err(e) => {
-                                qm.clear_state().await;
                                 // transport error
                                 // typically occurs when server is shutting down
                                 eprintln!("ws recv error: {e}");
@@ -199,7 +196,6 @@ pub async fn quotes_stream<'a, 'b: 'a>(
 
                     msg = subscription.recv() => {
                         let Ok(message) = msg else {
-                            qm.clear_state().await;
                             break;
                         };
 
@@ -209,8 +205,13 @@ pub async fn quotes_stream<'a, 'b: 'a>(
 
                         let response = message.map_err(ApplicationError::Polling);
 
+                        let value = match response {
+                            Ok(message) => serde_json::to_string(&message).expect("Ok message should be serializable"),
+                            Err(message) => serde_json::to_string(&message).expect("Err message should be serializable"),
+                        };
+
                         let _ = stream
-                            .send(Message::Text(serde_json::to_string(&response).unwrap()))
+                            .send(Message::Text(value))
                             .await;
 
                         qm.set_quotes(tickers.iter().cloned().collect()).await;

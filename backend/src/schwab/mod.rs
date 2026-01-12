@@ -93,8 +93,6 @@ pub async fn get_quote(
         .await
         .map_err(ApplicationError::Network)?;
 
-    dbg!(&response);
-
     let parsed = serde_json::from_str::<QuoteResponse>(&response)
         .map_err(ApplicationError::QuoteResponseDeserialization)?;
 

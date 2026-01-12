@@ -100,6 +100,8 @@ where
                 if let Some(handle) = h.take() {
                     handle.abort();
                 }
+                let mut q = inner.queued.write().await;
+                q.clear();
             });
         }
     }
@@ -173,11 +175,6 @@ where
         Self { inner }
     }
 
-    pub async fn clear_state(&self) {
-        let mut q = self.inner.queued.write().await;
-        q.clear();
-    }
-
     pub async fn set_state(&self, states: Vec<State>) {
         let mut q = self.inner.queued.write().await;
         *q = states;
@@ -218,10 +215,17 @@ where
     State: StateLike,
 {
     fn drop(&mut self) {
-        // Best-effort shutdown (can’t await here)
-        let mut h = self.inner.handle.blocking_lock();
-        if let Some(handle) = h.take() {
-            handle.abort();
+        let inner = self.inner.clone();
+
+        let Ok(mut x) = inner.handle.try_lock() else {
+            eprintln!("could not get handle to gracefully shutdown Poller");
+            return;
+        };
+
+        if let Some(handle) = x.take() {
+            if !handle.is_finished() {
+                handle.abort();
+            }
         }
     }
 }

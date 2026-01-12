@@ -46,10 +46,6 @@ impl QuotesState {
         }
     }
 
-    pub async fn clear_state(&self) {
-        self.poller.clear_state().await;
-    }
-
     pub async fn set_quotes(&self, quotes: Vec<String>) {
         self.poller.set_state(quotes).await
     }
