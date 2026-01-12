@@ -1,6 +1,7 @@
 use std::{env, fs, path::{Path, PathBuf}, process::Command};
 
 pub fn main() {
+    println!();
     println!("cargo:warning=[build.rs] running build script");
 
     println!("cargo:rerun-if-changed=../frontend/package.json");
@@ -18,9 +19,8 @@ pub fn main() {
         .status()
         .unwrap_or_else(|e| {
             panic!(
-                "failed to run `npm run build` in {:?}: {e}\n\
-                 (Is Node/npm installed and on PATH?)",
-                frontend_dir
+                "failed to run `npm run build` in {frontend_dir:?}: {e}\n\
+                 (Is Node/npm installed and on PATH?)"
             )
         });
 

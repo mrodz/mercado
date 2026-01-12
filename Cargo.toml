@@ -1,3 +1,3 @@
 [workspace]
-members = ["backend", "db"]
+members = ["backend", "db", "backend/error-responder"]
 resolver = "3"

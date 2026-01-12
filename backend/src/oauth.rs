@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use base64::{
     Engine, prelude::BASE64_URL_SAFE_NO_PAD,
 };
@@ -20,7 +22,7 @@ pub struct CredentialsPackaged {
     credentials: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Credentials {
     access_token: String,
     refresh_token: String,
@@ -31,16 +33,40 @@ pub struct Credentials {
     minted: DateTime<Utc>,
 }
 
+impl Debug for Credentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn censor(s: &str) -> String {
+            let mut chars = s.chars();
+
+            let prefix: String = chars.by_ref().take(4).collect();
+            let rest_len = chars.count();
+
+            if rest_len == 0 {
+                prefix
+            } else {
+                format!("{prefix}{}", "*".repeat(rest_len))
+            }
+        }
+
+        f.debug_struct("Credentials")
+            .field("access_token", &censor(&self.access_token))
+            .field("refresh_token", &censor(&self.refresh_token))
+            .field("expires_in", &self.expires_in)
+            .field("minted", &self.minted)
+            .finish()
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum CredentialsError {
     #[error("could not decode credential: {0}")]
-    DecodeError(#[from] base64::DecodeError),
+    Decode(#[from] base64::DecodeError),
     #[error("encountered invalid UTF 8: {0}")]
-    Utf8Error(#[from] std::string::FromUtf8Error),
+    Utf8(#[from] std::string::FromUtf8Error),
     #[error("invalid JSON for Credentials: {0}")]
-    SerDeError(#[from] serde_json::Error),
+    SerDe(#[from] serde_json::Error),
     #[error("error in oauth flow: {0}")]
-    Oauth2Error(#[from] rocket_oauth2::Error),
+    Oauth2(#[from] rocket_oauth2::Error),
 }
 
 impl From<TokenResponse<Schwab>> for Credentials {
@@ -118,12 +144,12 @@ impl Credentials {
         Ok(())
     }
 
-    pub async fn ensure_access_token<'a>(
-        &'a mut self,
+    pub async fn ensure_access_token(
+        &mut self,
         oauth2: &OAuth2<Schwab>,
     ) -> Result<String, CredentialsError> {
         if let Some(access_token) = self.access_token() {
-            return Ok(access_token.to_owned());
+            Ok(access_token.to_owned())
         } else {
             self.refresh_access_token(oauth2).await?;
             Ok(self.access_token().expect("fresh credentials should not be expired").to_owned())
@@ -149,9 +175,7 @@ impl Credentials {
 
     pub fn encode(credentials: &Self) -> String {
         let obj = serde_json::to_string(credentials).expect("serializing should never fail");
-        let encoded = BASE64_URL_SAFE_NO_PAD.encode(&obj);
-
-        encoded
+        BASE64_URL_SAFE_NO_PAD.encode(&obj)
     }
 
     pub fn decode(encoded: &str) -> Result<Self, CredentialsError> {

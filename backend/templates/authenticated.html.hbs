@@ -302,6 +302,7 @@
                         </tr>
                         <tr class="debug-endpoints-row" data-fetch="https://127.0.0.1:8000/u/user"></tr>
                         <tr class="debug-endpoints-row" data-fetch="https://127.0.0.1:8000/debug/refresh_token"></tr>
+                        <tr class="debug-endpoints-row" data-fetch="https://127.0.0.1:8000/u/quotes"></tr>
                     </table>
                 </div>
             </div>
@@ -550,6 +551,13 @@
                             'Content-Type': 'application/json',
                         },
                         method: 'POST',
+                    });
+
+                    return await response.json()
+                },
+                "https://127.0.0.1:8000/u/quotes": async function() {
+                    const response = await fetch("https://127.0.0.1:8000/u/quotes?symbols=NVDA,VICI", {
+                        method: 'GET',
                     });
 
                     return await response.json()
