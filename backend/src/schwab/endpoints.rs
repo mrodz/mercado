@@ -1,11 +1,11 @@
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 use rocket::form::FromForm;
 use rocket::futures::{SinkExt, StreamExt};
 use rocket::tokio::select;
 use rocket::{State, http::CookieJar, serde::json::Json};
 use rocket_oauth2::OAuth2;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use ws::{Message, WebSocket};
 
@@ -112,13 +112,30 @@ fn ws_err(e: ApplicationError) -> Message {
     Message::Text(format!(r#"{{"error":{{"{e:?}":"{e}"}}}}"#))
 }
 
-#[derive(Debug, Deserialize)]
+fn ws_subscribed() -> Message {
+    Message::Text(serde_json::to_string(&WsMsg::Subscribed).unwrap())
+}
+
+fn ws_ok(client_msg: ClientMsg) -> Message {
+    Message::Text(serde_json::to_string(&WsMsg::Ok(client_msg)).unwrap())
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(crate = "rocket::serde", tag = "type", rename_all = "snake_case")]
 enum ClientMsg {
     Add { symbols: Vec<String> },
     Remove { symbols: Vec<String> },
     Subscribe { symbols: Vec<String> },
     Ping(Vec<u8>),
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "event", rename_all = "lowercase")]
+enum WsMsg {
+    Subscribed,
+    Ok(ClientMsg),
+    Quote(QuoteResponse), // or your real quote type
+    Error { error: BTreeMap<String, String> },
 }
 
 #[get("/quotes/stream")]
@@ -150,6 +167,8 @@ pub async fn quotes_stream<'a, 'b: 'a>(
 
             let mut tickers = HashSet::new();
 
+            let _ = stream.send(ws_subscribed()).await;
+            
             loop {
                 select! {
                     incoming = stream.next() => {
@@ -159,21 +178,24 @@ pub async fn quotes_stream<'a, 'b: 'a>(
                         };
 
                         match incoming {
-                            Ok(Message::Text(txt)) => match serde_json::from_str::<ClientMsg>(&txt) {
-                                Ok(ClientMsg::Ping(pong)) => {
+                            Ok(Message::Text(txt)) => match serde_json::from_str::<ClientMsg>(&txt).map(|message| (ws_ok(message.clone()), message)) {
+                                Ok((_, ClientMsg::Ping(pong))) => {
                                     let _ = stream.send(Message::Pong(pong)).await;
                                 }
-                                Ok(ClientMsg::Add { symbols }) => {
+                                Ok((m, ClientMsg::Add { symbols })) => {
                                     tickers.extend(symbols);
+                                    let _ = stream.send(m).await;
                                 }
-                                Ok(ClientMsg::Remove { symbols }) => {
+                                Ok((m, ClientMsg::Remove { symbols })) => {
                                     for e in &symbols {
                                         tickers.remove(e);
                                     }
+                                    let _ = stream.send(m).await;
                                 }
-                                Ok(ClientMsg::Subscribe { symbols }) => {
+                                Ok((m, ClientMsg::Subscribe { symbols })) => {
                                     tickers.clear();
                                     tickers.extend(symbols);
+                                    let _ = stream.send(m).await;
                                 }
                                 Err(_) => {
                                     let _ = stream.send(ws_err(ApplicationError::InvalidWebSocketPayload)).await;

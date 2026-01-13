@@ -1,7 +1,6 @@
 pub mod endpoints;
 pub mod schema;
 
-use base64::{Engine, prelude::BASE64_URL_SAFE};
 use itertools::Itertools;
 use reqwest::Client;
 use rocket_oauth2::OAuth2;
@@ -86,7 +85,7 @@ pub async fn get_quote(
 
     let symbols = quotes
         .iter()
-        .map(|quote| BASE64_URL_SAFE.encode(quote))
+        .map(|quote| urlencoding::encode(quote))
         .join(",");
 
     let req = client.get(format!("{MARKET_DATA_API}/quotes?symbols={symbols}&fields=quote,fundamental,extended,reference,regular&indicative=false"))
