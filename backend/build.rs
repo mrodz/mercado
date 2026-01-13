@@ -1,4 +1,8 @@
-use std::{env, fs, path::{Path, PathBuf}, process::Command};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 pub fn main() {
     println!();
@@ -37,7 +41,10 @@ pub fn main() {
     }
     copy_dir_all(&dist_src, &build_dst).expect("failed to copy dist -> ./build");
 
-    println!("cargo:warning=[build.rs] frontend copied to {}", build_dst.display());
+    println!(
+        "cargo:warning=[build.rs] frontend copied to {}",
+        build_dst.display()
+    );
 }
 
 fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {

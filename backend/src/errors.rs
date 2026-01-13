@@ -15,22 +15,36 @@ pub enum ApplicationError {
     #[respond("Unauthorized")]
     MissingAuthentication,
 
-    #[error("invalid WebSocket payload; expected JSON control message of the form: \
-         {{\"type\":\"add|remove\",\"symbols\":[\"AAPL\",\"MSFT\",...]}}")]
+    #[error(
+        "invalid WebSocket payload; expected JSON control message of the form: \
+         {{\"type\":\"add|remove\",\"symbols\":[\"AAPL\",\"MSFT\",...]}}"
+    )]
     #[respond("BadRequest")]
     InvalidWebSocketPayload,
 
     #[error("invalid credentials string: {0}")]
     #[respond("Unauthorized")]
-    InvalidCredentials(#[from(CredentialsError)] #[serde(skip)] CredentialsError),
+    InvalidCredentials(
+        #[from(CredentialsError)]
+        #[serde(skip)]
+        CredentialsError,
+    ),
 
     #[error("network error: {0}")]
     #[respond("InternalServerError")]
-    Network(#[from(reqwest::Error)] #[serde(skip)] reqwest::Error),
+    Network(
+        #[from(reqwest::Error)]
+        #[serde(skip)]
+        reqwest::Error,
+    ),
 
     #[error("expected json: {0}")]
     #[respond("InternalServerError")]
-    InvalidJson(#[from(serde_json::Error)] #[serde(skip)] serde_json::Error),
+    InvalidJson(
+        #[from(serde_json::Error)]
+        #[serde(skip)]
+        serde_json::Error,
+    ),
 
     #[error("{index} not found in {object}")]
     #[respond("InternalServerError")]
@@ -38,15 +52,27 @@ pub enum ApplicationError {
 
     #[error("SchwabAccount deserialization failed: {0}")]
     #[respond("InternalServerError")]
-    SchwabAccountDeserialization(#[from(serde_json::Error)] #[serde(skip)] serde_json::Error),
+    SchwabAccountDeserialization(
+        #[from(serde_json::Error)]
+        #[serde(skip)]
+        serde_json::Error,
+    ),
 
     #[error("QuoteResponse deserialization failed: {0}")]
     #[respond("InternalServerError")]
-    QuoteResponseDeserialization(#[from(serde_json::Error)] #[serde(skip)] serde_json::Error),
+    QuoteResponseDeserialization(
+        #[from(serde_json::Error)]
+        #[serde(skip)]
+        serde_json::Error,
+    ),
 
     #[error("channel failed: {0}")]
     #[respond("InternalServerError")]
-    ChannelBroadcastFailed(#[from(broadcast::error::RecvError)] #[serde(skip)] broadcast::error::RecvError),
+    ChannelBroadcastFailed(
+        #[from(broadcast::error::RecvError)]
+        #[serde(skip)]
+        broadcast::error::RecvError,
+    ),
 
     /// Allows for many channels to share an ApplicationError from broadcast
     #[error("shared error in polling: {0}")]

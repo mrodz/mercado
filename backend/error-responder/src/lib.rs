@@ -50,23 +50,23 @@ pub fn error_responder(input: TokenStream) -> TokenStream {
     });
 
     let output = quote! {
-            impl<'r, 'o: 'r> ::rocket::response::Responder<'r, 'o> for #ident {
-                fn respond_to(self, request: &'r ::rocket::Request<'_>) -> ::rocket::response::Result<'o> {
-					let status = match &self {
-						#(#variant_response_status)*
-						_ => #response_status,
-					};
+        impl<'r, 'o: 'r> ::rocket::response::Responder<'r, 'o> for #ident {
+            fn respond_to(self, request: &'r ::rocket::Request<'_>) -> ::rocket::response::Result<'o> {
+                let status = match &self {
+                    #(#variant_response_status)*
+                    _ => #response_status,
+                };
 
-					let mut res = ::rocket::serde::json::Json(Inner { error: self }).respond_to(request)?;
-					res.set_status(status);
-					Ok(res)
-				}
+                let mut res = ::rocket::serde::json::Json(Inner { error: self }).respond_to(request)?;
+                res.set_status(status);
+                Ok(res)
             }
+        }
 
-			#[derive(::rocket::serde::Serialize)]
-            #[serde(crate = "::rocket::serde")]
-            struct Inner { error: #ident }
-        };
+        #[derive(::rocket::serde::Serialize)]
+        #[serde(crate = "::rocket::serde")]
+        struct Inner { error: #ident }
+    };
 
     output.into()
 }

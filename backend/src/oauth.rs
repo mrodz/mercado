@@ -1,8 +1,6 @@
 use std::fmt::Debug;
 
-use base64::{
-    Engine, prelude::BASE64_URL_SAFE_NO_PAD,
-};
+use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use chrono::{DateTime, TimeDelta, Utc};
 use rocket::{
     fairing::Fairing,
@@ -132,12 +130,18 @@ impl Credentials {
         }
     }
 
-    pub async fn refresh_access_token(&mut self, oauth2: &OAuth2<Schwab>) -> Result<(), CredentialsError> {
+    pub async fn refresh_access_token(
+        &mut self,
+        oauth2: &OAuth2<Schwab>,
+    ) -> Result<(), CredentialsError> {
         let token_response = oauth2.refresh(&self.refresh_token).await?;
         let as_credentials = Credentials::from(token_response);
 
         self.minted = Utc::now();
-        self.access_token = as_credentials.access_token().expect("fresh credentials should not be expired").to_owned();
+        self.access_token = as_credentials
+            .access_token()
+            .expect("fresh credentials should not be expired")
+            .to_owned();
         self.refresh_token = as_credentials.refresh_token().to_owned();
         self.expires_in = as_credentials.expires_in;
 
@@ -152,7 +156,10 @@ impl Credentials {
             Ok(access_token.to_owned())
         } else {
             self.refresh_access_token(oauth2).await?;
-            Ok(self.access_token().expect("fresh credentials should not be expired").to_owned())
+            Ok(self
+                .access_token()
+                .expect("fresh credentials should not be expired")
+                .to_owned())
         }
     }
 

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap; 
+use std::collections::HashMap;
 
 #[cfg(test)]
 mod tests {
@@ -20,8 +20,6 @@ mod tests {
         dbg!(&result);
         assert!(result.is_ok())
     }
-
-    
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

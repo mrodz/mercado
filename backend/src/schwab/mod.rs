@@ -1,6 +1,8 @@
 pub mod endpoints;
 pub mod schema;
 
+use base64::{Engine, prelude::BASE64_URL_SAFE};
+use itertools::Itertools;
 use reqwest::Client;
 use rocket_oauth2::OAuth2;
 use serde::{Deserialize, Serialize};
@@ -58,10 +60,13 @@ pub async fn get_user(
 
     let mut result = vec![];
 
-    let accounts_as_array = accounts.as_array().ok_or_else(|| ApplicationError::InvalidJsonLookup {
-            index: "enforce<array>(accounts)".to_owned(),
-            object: users.clone(),
-        })?;
+    let accounts_as_array =
+        accounts
+            .as_array()
+            .ok_or_else(|| ApplicationError::InvalidJsonLookup {
+                index: "enforce<array>(accounts)".to_owned(),
+                object: users.clone(),
+            })?;
 
     for account in accounts_as_array {
         let account = serde_json::from_value::<SchwabAccount>(account.clone())
@@ -79,7 +84,10 @@ pub async fn get_quote(
 ) -> Result<QuoteResponse, ApplicationError> {
     let client = client.unwrap_or_default();
 
-    let symbols = quotes.join(",");
+    let symbols = quotes
+        .iter()
+        .map(|quote| BASE64_URL_SAFE.encode(quote))
+        .join(",");
 
     let req = client.get(format!("{MARKET_DATA_API}/quotes?symbols={symbols}&fields=quote,fundamental,extended,reference,regular&indicative=false"))
         .header("Authorization", format!("Bearer {}", credentials.access_token().ok_or(ApplicationError::MissingAuthentication)?))

@@ -6,7 +6,10 @@ pub use poller::Poller;
 use rocket::tokio::sync::RwLock;
 
 use crate::{
-    errors::ApplicationError, oauth::Credentials, quotes::poller::Subscription, schwab::{self, schema::QuoteResponse}
+    errors::ApplicationError,
+    oauth::Credentials,
+    quotes::poller::Subscription,
+    schwab::{self, schema::QuoteResponse},
 };
 
 #[derive(Debug)]
@@ -30,11 +33,12 @@ impl QuotesState {
                 };
 
                 if states.is_empty() {
-                    return Ok(QuoteResponse { quotes: HashMap::new() })
+                    return Ok(QuoteResponse {
+                        quotes: HashMap::new(),
+                    });
                 }
 
-                let response = schwab::get_quote(credentials, Some(client), states)
-                    .await?;
+                let response = schwab::get_quote(credentials, Some(client), states).await?;
 
                 Ok(response)
             })
@@ -54,13 +58,15 @@ impl QuotesState {
         self.poller.extend_unique(quotes).await
     }
 
-    pub async fn subscribe(&self) -> Subscription<Result<QuoteResponse, Arc<ApplicationError>>, String> {
+    pub async fn subscribe(
+        &self,
+    ) -> Subscription<Result<QuoteResponse, Arc<ApplicationError>>, String> {
         self.poller.subscribe()
     }
 
     pub async fn set_credentials(&self, credentials: Credentials) {
         let mut w = self.credentials.write().await;
-        
+
         *w = Some(credentials);
     }
 }

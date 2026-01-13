@@ -1,25 +1,29 @@
 use std::{
-    fmt::Debug, future::Future, pin::Pin, sync::{
-        Arc, atomic::{AtomicUsize, Ordering}
-    }, time::Duration
+    fmt::Debug,
+    future::Future,
+    pin::Pin,
+    sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    },
+    time::Duration,
 };
 
 use reqwest::Client;
 use rocket::tokio::{
     spawn,
-    sync::{broadcast, Mutex, RwLock},
+    sync::{Mutex, RwLock, broadcast},
     task::JoinHandle,
     time::sleep,
 };
 
 type BoxFuture<T> = Pin<Box<dyn Future<Output = T> + Send + 'static>>;
 
-type Callback<T, State> =
-    dyn FnMut(&Client, Vec<State>) -> BoxFuture<T> + Send + 'static;
+type Callback<T, State> = dyn FnMut(&Client, Vec<State>) -> BoxFuture<T> + Send + 'static;
 
-pub trait StateLike : Send + Sync + PartialEq + 'static {}
+pub trait StateLike: Send + Sync + PartialEq + 'static {}
 
-impl <T> StateLike for T where T: Send + Sync + PartialEq + 'static {}
+impl<T> StateLike for T where T: Send + Sync + PartialEq + 'static {}
 
 struct Inner<T, State>
 where
@@ -50,7 +54,7 @@ where
     inner: Arc<Inner<T, State>>,
 }
 
-impl <T, State> Debug for Poller<T, State>
+impl<T, State> Debug for Poller<T, State>
 where
     T: Clone + Send + 'static,
     State: StateLike + Debug,
