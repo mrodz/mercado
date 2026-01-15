@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::HashSet;
 
 use rocket::form::FromForm;
 use rocket::futures::{SinkExt, StreamExt};
@@ -134,8 +134,8 @@ enum ClientMsg {
 enum WsMsg {
     Subscribed,
     Ok(ClientMsg),
-    Quote(QuoteResponse), // or your real quote type
-    Error { error: BTreeMap<String, String> },
+    Quote { data: QuoteResponse }, // or your real quote type
+    // Error { error: BTreeMap<String, String> },
 }
 
 #[get("/quotes/stream")]
@@ -228,7 +228,7 @@ pub async fn quotes_stream<'a, 'b: 'a>(
                         let response = message.map_err(ApplicationError::Polling);
 
                         let value = match response {
-                            Ok(message) => serde_json::to_string(&message).expect("Ok message should be serializable"),
+                            Ok(message) => serde_json::to_string(&WsMsg::Quote { data: message }).expect("Ok message should be serializable"),
                             Err(message) => serde_json::to_string(&message).expect("Err message should be serializable"),
                         };
 

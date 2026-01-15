@@ -623,6 +623,9 @@ impl<InstrumentKey> DynamicStreams<InstrumentKey> {
                                             ),
                                         )
                                     }),
+                                    (ExchangeId::Schwab, SubKind::OrderBooksL1) => {
+                                        todo!()
+                                    }
                                     (exchange, sub_kind) => {
                                         Err(DataError::Unsupported { exchange, sub_kind })
                                     }
