@@ -21,7 +21,7 @@ function WebSocketComponent() {
   const parsedSymbols = useMemo(() => parseSymbols(symbolsInput), [symbolsInput]);
 
   useEffect(() => {
-    const url = "https://127.0.0.1:8000/u/quotes/stream";
+    const url = "wss://127.0.0.1:8000/u/quotes/stream";
     const newSocket = new WebSocket(url);
     setSocket(newSocket);
 

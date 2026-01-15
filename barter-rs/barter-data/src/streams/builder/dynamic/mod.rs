@@ -15,7 +15,7 @@ use crate::{
             spot::GateioSpot,
         },
         kraken::{Kraken, market::KrakenMarket},
-        okx::{Okx, market::OkxMarket},
+        okx::{Okx, market::OkxMarket}, schwab::{Schwab, market::SchwabMarket},
     },
     instrument::InstrumentData,
     streams::{
@@ -106,6 +106,7 @@ impl<InstrumentKey> DynamicStreams<InstrumentKey> {
         Subscription<Kraken, Instrument, PublicTrades>: Identifier<KrakenMarket>,
         Subscription<Kraken, Instrument, OrderBooksL1>: Identifier<KrakenMarket>,
         Subscription<Okx, Instrument, PublicTrades>: Identifier<OkxMarket>,
+        Subscription<Schwab, Instrument, OrderBooksL1>: Identifier<SchwabMarket>,
     {
         // Validate & dedup Subscription batches
         let batches = validate_batches(subscription_batches)?;
@@ -623,9 +624,28 @@ impl<InstrumentKey> DynamicStreams<InstrumentKey> {
                                             ),
                                         )
                                     }),
-                                    (ExchangeId::Schwab, SubKind::OrderBooksL1) => {
-                                        todo!()
-                                    }
+                                    // the trait bound `Subscription<schwab::Schwab, _, subscription::book::OrderBooksL1>: Identifier<SchwabChannel>` is not satisfied
+                                    // the trait bound `Subscription<Schwab, Instrument, OrderBooksL1>: Identifier<...>` is not satisfied
+
+                                    
+                                    (ExchangeId::Schwab, SubKind::OrderBooksL1) => init_market_stream(
+                                            STREAM_RECONNECTION_POLICY,
+                                            subs.into_iter()
+                                                .map(|sub| {
+                                                    Subscription::<Schwab, Instrument, OrderBooksL1>::new(
+                                                        Schwab,
+                                                        sub.instrument,
+                                                        OrderBooksL1,
+                                                    )
+                                                })
+                                                .collect(),
+                                        )
+                                        .await
+                                        .map(|stream| {
+                                            tokio::spawn(stream.forward_to(
+                                                txs.l1s.get(&exchange).unwrap().clone(),
+                                            ))
+                                        }),
                                     (exchange, sub_kind) => {
                                         Err(DataError::Unsupported { exchange, sub_kind })
                                     }

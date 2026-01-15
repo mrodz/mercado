@@ -50,7 +50,7 @@ pub mod trade;
 /// [`Schwab`] server base url.
 ///
 /// See docs: <https://www.okx.com/docs-v5/en/#overview-api-resources-and-support>
-pub const BASE_URL_SCHWAB: &str = "https://127.0.0.1:8000/u/quotes/stream";
+pub const BASE_URL_SCHWAB: &str = "wss://127.0.0.1:8000/u/quotes/stream";
 
 pub type SchwabWsStream<Transformer> = ExchangeWsStream<WebSocketSerdeParser, Transformer>;
 
